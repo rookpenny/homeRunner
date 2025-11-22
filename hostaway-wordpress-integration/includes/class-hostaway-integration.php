@@ -39,6 +39,7 @@ class Hostaway_Integration {
      */
     private function load_dependencies() {
         require_once HOSTAWAY_INTEGRATION_PLUGIN_DIR . 'includes/class-hostaway-loader.php';
+        require_once HOSTAWAY_INTEGRATION_PLUGIN_DIR . 'includes/class-hostaway-config.php';
         require_once HOSTAWAY_INTEGRATION_PLUGIN_DIR . 'includes/class-hostaway-api-client.php';
         require_once HOSTAWAY_INTEGRATION_PLUGIN_DIR . 'includes/class-hostaway-post-type.php';
         require_once HOSTAWAY_INTEGRATION_PLUGIN_DIR . 'includes/class-hostaway-widget.php';
