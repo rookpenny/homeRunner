@@ -1,0 +1,81 @@
+/**
+ * Hostaway Integration - Admin Styles
+ */
+
+.hostaway-admin-page {
+    max-width: 800px;
+}
+
+#connection-result,
+#sync-result {
+    margin-top: 20px;
+    padding: 15px;
+    border-left: 4px solid #0073aa;
+    background: #f0f0f1;
+    border-radius: 4px;
+}
+
+#connection-result.success,
+#sync-result.success {
+    border-left-color: #46b450;
+    background: #ecf7ed;
+    color: #006505;
+}
+
+#connection-result.error,
+#sync-result.error {
+    border-left-color: #dc3232;
+    background: #f9e9e9;
+    color: #a00;
+}
+
+.sync-spinner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sync-progress-bar {
+    width: 100%;
+    height: 30px;
+    background: #f0f0f1;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+.sync-progress-fill {
+    height: 100%;
+    background: #0073aa;
+    transition: width 0.3s ease;
+}
+
+.sync-stats {
+    margin-top: 15px;
+    padding: 15px;
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+}
+
+.sync-stats p {
+    margin: 5px 0;
+}
+
+.sync-errors {
+    margin-top: 15px;
+    padding: 15px;
+    background: #f9e9e9;
+    border: 1px solid #dc3232;
+    border-radius: 4px;
+}
+
+.sync-errors h4 {
+    margin-top: 0;
+    color: #a00;
+}
+
+.sync-errors ul {
+    margin: 0;
+    padding-left: 20px;
+}
