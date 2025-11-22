@@ -1,0 +1,302 @@
+/**
+ * Hostaway Integration - Public Styles
+ */
+
+/* Listings Grid */
+.hostaway-listings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 30px;
+    margin: 30px 0;
+}
+
+.hostaway-listings-grid.columns-2 {
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+}
+
+.hostaway-listings-grid.columns-3 {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
+
+.hostaway-listings-grid.columns-4 {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+}
+
+/* Listing Card */
+.hostaway-listing-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hostaway-listing-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.hostaway-listing-card .listing-thumbnail {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+}
+
+.hostaway-listing-card .listing-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.hostaway-listing-card:hover .listing-thumbnail img {
+    transform: scale(1.1);
+}
+
+.hostaway-listing-card .listing-content {
+    padding: 20px;
+}
+
+.hostaway-listing-card .listing-title {
+    margin: 0 0 10px;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.hostaway-listing-card .listing-title a {
+    color: #333;
+    text-decoration: none;
+}
+
+.hostaway-listing-card .listing-title a:hover {
+    color: #0073aa;
+}
+
+.hostaway-listing-card .listing-location {
+    display: flex;
+    align-items: center;
+    margin: 0 0 15px;
+    color: #666;
+    font-size: 14px;
+}
+
+.hostaway-listing-card .listing-location .dashicons {
+    margin-right: 5px;
+    font-size: 16px;
+}
+
+.hostaway-listing-card .listing-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 15px;
+    padding: 15px 0;
+    border-top: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.hostaway-listing-card .detail-item {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    color: #666;
+}
+
+.hostaway-listing-card .detail-item .dashicons {
+    margin-right: 5px;
+    font-size: 16px;
+}
+
+.hostaway-listing-card .listing-price {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0073aa;
+    margin-bottom: 15px;
+}
+
+.hostaway-listing-card .price-period {
+    font-size: 14px;
+    font-weight: 400;
+    color: #666;
+}
+
+.hostaway-listing-card .listing-excerpt {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 15px;
+    line-height: 1.6;
+}
+
+.hostaway-listing-card .listing-button {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #0073aa;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: 500;
+    transition: background 0.3s ease;
+}
+
+.hostaway-listing-card .listing-button:hover {
+    background: #005a87;
+}
+
+/* No Listings */
+.hostaway-no-listings {
+    text-align: center;
+    padding: 40px;
+    background: #f7f7f7;
+    border-radius: 8px;
+    color: #666;
+}
+
+/* Single Listing */
+.hostaway-single-listing {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.hostaway-single-listing .listing-title {
+    font-size: 36px;
+    margin-bottom: 10px;
+}
+
+.hostaway-single-listing .listing-location {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    font-size: 18px;
+    color: #666;
+}
+
+.hostaway-single-listing .listing-gallery {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 30px;
+}
+
+.hostaway-single-listing .listing-gallery img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.hostaway-single-listing .listing-gallery img:first-child {
+    grid-column: 1 / -1;
+    height: 400px;
+}
+
+.hostaway-single-listing .listing-featured-image {
+    margin-bottom: 30px;
+}
+
+.hostaway-single-listing .listing-featured-image img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+.hostaway-single-listing .listing-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 30px;
+    background: #f7f7f7;
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+.hostaway-single-listing .listing-price-large {
+    font-size: 32px;
+    font-weight: 700;
+    color: #0073aa;
+}
+
+.hostaway-single-listing .listing-details-large {
+    display: flex;
+    gap: 30px;
+}
+
+.hostaway-single-listing .listing-details-large .detail-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+}
+
+.hostaway-single-listing .listing-description {
+    margin-bottom: 30px;
+    line-height: 1.8;
+}
+
+.hostaway-single-listing .listing-description h2 {
+    margin-bottom: 15px;
+}
+
+.hostaway-single-listing .listing-amenities {
+    margin-bottom: 30px;
+}
+
+.hostaway-single-listing .listing-amenities h2 {
+    margin-bottom: 15px;
+}
+
+.hostaway-single-listing .listing-amenities ul {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    list-style: none;
+    padding: 0;
+}
+
+.hostaway-single-listing .listing-amenities li {
+    padding: 10px;
+    background: #f7f7f7;
+    border-radius: 4px;
+}
+
+.hostaway-single-listing .listing-map {
+    margin-bottom: 30px;
+}
+
+.hostaway-single-listing .listing-map h2 {
+    margin-bottom: 15px;
+}
+
+.hostaway-single-listing .map-container {
+    height: 400px;
+    background: #e0e0e0;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hostaway-listings-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .hostaway-single-listing .listing-meta {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .hostaway-single-listing .listing-details-large {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .hostaway-single-listing .listing-gallery {
+        grid-template-columns: 1fr;
+    }
+
+    .hostaway-single-listing .listing-gallery img:first-child {
+        grid-column: 1;
+    }
+}
