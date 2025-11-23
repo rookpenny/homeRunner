@@ -138,6 +138,8 @@ class Hostaway_Post_Type {
         update_post_meta( $post_id, '_hostaway_data', $listing_data );
 
         // Save fields using theme's field names
+
+        // Basic property details
         if ( isset( $listing_data['bedrooms'] ) ) {
             Hostaway_Config::save_field( $post_id, 'bedrooms', intval( $listing_data['bedrooms'] ) );
         }
@@ -147,6 +149,11 @@ class Hostaway_Post_Type {
         if ( isset( $listing_data['accommodates'] ) ) {
             Hostaway_Config::save_field( $post_id, 'accommodates', intval( $listing_data['accommodates'] ) );
         }
+        if ( isset( $listing_data['numberOfRooms'] ) ) {
+            Hostaway_Config::save_field( $post_id, 'rooms', intval( $listing_data['numberOfRooms'] ) );
+        }
+
+        // Location information
         if ( isset( $listing_data['address'] ) ) {
             Hostaway_Config::save_field( $post_id, 'address', sanitize_text_field( $listing_data['address'] ) );
         }
@@ -165,11 +172,85 @@ class Hostaway_Post_Type {
         if ( isset( $listing_data['longitude'] ) ) {
             Hostaway_Config::save_field( $post_id, 'longitude', floatval( $listing_data['longitude'] ) );
         }
+
+        // Pricing information
         if ( isset( $listing_data['baseDailyRate'] ) ) {
             Hostaway_Config::save_field( $post_id, 'price', floatval( $listing_data['baseDailyRate'] ) );
         }
         if ( isset( $listing_data['currencyCode'] ) ) {
             Hostaway_Config::save_field( $post_id, 'currency', sanitize_text_field( $listing_data['currencyCode'] ) );
+        }
+        if ( isset( $listing_data['weeklyDiscount'] ) ) {
+            Hostaway_Config::save_field( $post_id, 'weekly_discount', floatval( $listing_data['weeklyDiscount'] ) );
+        }
+        if ( isset( $listing_data['monthlyDiscount'] ) ) {
+            Hostaway_Config::save_field( $post_id, 'monthly_discount', floatval( $listing_data['monthlyDiscount'] ) );
+        }
+        if ( isset( $listing_data['cleaningFee'] ) ) {
+            Hostaway_Config::save_field( $post_id, 'cleaning_fee', floatval( $listing_data['cleaningFee'] ) );
+        }
+        if ( isset( $listing_data['securityDepositFee'] ) ) {
+            Hostaway_Config::save_field( $post_id, 'security_deposit', floatval( $listing_data['securityDepositFee'] ) );
+        }
+        if ( isset( $listing_data['extraPersonFee'] ) ) {
+            Hostaway_Config::save_field( $post_id, 'extra_person_fee', floatval( $listing_data['extraPersonFee'] ) );
+        }
+
+        // Property size and features
+        if ( isset( $listing_data['propertySize'] ) ) {
+            Hostaway_Config::save_field( $post_id, 'property_size', floatval( $listing_data['propertySize'] ) );
+        }
+        if ( isset( $listing_data['propertySizeUnit'] ) ) {
+            Hostaway_Config::save_field( $post_id, 'property_size_unit', sanitize_text_field( $listing_data['propertySizeUnit'] ) );
+        }
+
+        // Check-in/Check-out
+        if ( isset( $listing_data['checkInTime'] ) ) {
+            Hostaway_Config::save_field( $post_id, 'checkin_time', sanitize_text_field( $listing_data['checkInTime'] ) );
+        }
+        if ( isset( $listing_data['checkOutTime'] ) ) {
+            Hostaway_Config::save_field( $post_id, 'checkout_time', sanitize_text_field( $listing_data['checkOutTime'] ) );
+        }
+        if ( isset( $listing_data['checkInTimeStart'] ) ) {
+            Hostaway_Config::save_field( $post_id, 'checkin_time_start', sanitize_text_field( $listing_data['checkInTimeStart'] ) );
+        }
+        if ( isset( $listing_data['checkInTimeEnd'] ) ) {
+            Hostaway_Config::save_field( $post_id, 'checkin_time_end', sanitize_text_field( $listing_data['checkInTimeEnd'] ) );
+        }
+
+        // Stay requirements
+        if ( isset( $listing_data['minNights'] ) ) {
+            Hostaway_Config::save_field( $post_id, 'min_stay', intval( $listing_data['minNights'] ) );
+        }
+        if ( isset( $listing_data['maxNights'] ) ) {
+            Hostaway_Config::save_field( $post_id, 'max_stay', intval( $listing_data['maxNights'] ) );
+        }
+
+        // Status and availability
+        if ( isset( $listing_data['isActive'] ) ) {
+            Hostaway_Config::save_field( $post_id, 'is_active', $listing_data['isActive'] ? 1 : 0 );
+        }
+        if ( isset( $listing_data['isListed'] ) ) {
+            Hostaway_Config::save_field( $post_id, 'is_listed', $listing_data['isListed'] ? 1 : 0 );
+        }
+
+        // Policies
+        if ( isset( $listing_data['houseRules'] ) ) {
+            Hostaway_Config::save_field( $post_id, 'house_rules', wp_kses_post( $listing_data['houseRules'] ) );
+        }
+        if ( isset( $listing_data['cancellationPolicy'] ) ) {
+            Hostaway_Config::save_field( $post_id, 'cancellation_policy', sanitize_text_field( $listing_data['cancellationPolicy'] ) );
+        }
+
+        // Additional details
+        if ( isset( $listing_data['airbnbPropertyType'] ) ) {
+            Hostaway_Config::save_field( $post_id, 'airbnb_property_type', sanitize_text_field( $listing_data['airbnbPropertyType'] ) );
+        }
+        if ( isset( $listing_data['roomType'] ) ) {
+            Hostaway_Config::save_field( $post_id, 'room_type', sanitize_text_field( $listing_data['roomType'] ) );
+        }
+        if ( isset( $listing_data['timezone'] ) ) {
+            Hostaway_Config::save_field( $post_id, 'timezone', sanitize_text_field( $listing_data['timezone'] ) );
         }
 
         // Set property type
@@ -196,6 +277,27 @@ class Hostaway_Post_Type {
                 }
             }
             update_post_meta( $post_id, '_image_gallery', $image_urls );
+        }
+
+        // Handle amenities
+        if ( isset( $listing_data['amenities'] ) && is_array( $listing_data['amenities'] ) ) {
+            $amenity_names = array();
+            foreach ( $listing_data['amenities'] as $amenity ) {
+                if ( is_string( $amenity ) ) {
+                    $amenity_names[] = $amenity;
+                } elseif ( isset( $amenity['name'] ) ) {
+                    $amenity_names[] = $amenity['name'];
+                }
+            }
+
+            if ( ! empty( $amenity_names ) ) {
+                // Set as taxonomy terms
+                wp_set_object_terms( $post_id, $amenity_names, 'amenity' );
+
+                // Also save as meta for easier access
+                update_post_meta( $post_id, '_amenities', $amenity_names );
+                Hostaway_Config::save_field( $post_id, 'amenities', $amenity_names );
+            }
         }
 
         return $post_id;
