@@ -13,11 +13,17 @@ class Hostaway_Config {
      * Set to 'hostaway_listing' to create separate post type
      */
     public static function get_post_type() {
+        // Check for forced post type (set via debug helper)
+        $forced = get_option('hostaway_force_post_type');
+        if ($forced && post_type_exists($forced)) {
+            return $forced;
+        }
+
         $use_existing = get_option('hostaway_use_existing_post_type', 'yes');
 
         if ($use_existing === 'yes') {
             // Try common post type names
-            $possible_types = array('listing', 'listings', 'property', 'properties', 'estate_property');
+            $possible_types = array('listing', 'listings', 'property', 'properties', 'estate_property', 'real_estate', 'realestate');
 
             foreach ($possible_types as $type) {
                 if (post_type_exists($type)) {
