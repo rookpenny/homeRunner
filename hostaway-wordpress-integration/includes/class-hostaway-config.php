@@ -120,6 +120,17 @@ class Hostaway_Config {
             'timezone'              => 'timezone',
             'amenities'             => 'amenities',
             'property_type'         => 'property_type',
+
+            // Calendar & Availability
+            'calendar'              => 'calendar',
+            'blocked_dates'         => 'blocked_dates',
+            'available_dates'       => 'available_dates',
+            'next_available'        => 'next_available',
+
+            // Gallery & Images
+            'gallery'               => 'gallery',
+            'gallery_images'        => 'gallery_images',
+            'image_count'           => 'image_count',
         );
     }
 
@@ -179,6 +190,17 @@ class Hostaway_Config {
             'timezone'              => 'fave_timezone',
             'amenities'             => 'fave_property_features',
             'property_type'         => 'property_type',
+
+            // Calendar & Availability
+            'calendar'              => 'fave_calendar',
+            'blocked_dates'         => 'fave_blocked_dates',
+            'available_dates'       => 'fave_available_dates',
+            'next_available'        => 'fave_next_available',
+
+            // Gallery & Images
+            'gallery'               => 'fave_property_images',
+            'gallery_images'        => 'fave_property_images',
+            'image_count'           => 'fave_image_count',
         );
     }
 
@@ -238,6 +260,17 @@ class Hostaway_Config {
             'timezone'              => 'REAL_HOMES_timezone',
             'amenities'             => 'REAL_HOMES_property_features',
             'property_type'         => 'property-type',
+
+            // Calendar & Availability
+            'calendar'              => 'REAL_HOMES_calendar',
+            'blocked_dates'         => 'REAL_HOMES_blocked_dates',
+            'available_dates'       => 'REAL_HOMES_available_dates',
+            'next_available'        => 'REAL_HOMES_next_available',
+
+            // Gallery & Images
+            'gallery'               => 'REAL_HOMES_property_images',
+            'gallery_images'        => 'REAL_HOMES_gallery',
+            'image_count'           => 'REAL_HOMES_image_count',
         );
     }
 
@@ -297,6 +330,17 @@ class Hostaway_Config {
             'timezone'              => 'property_timezone',
             'amenities'             => 'property_features',
             'property_type'         => 'property_category',
+
+            // Calendar & Availability
+            'calendar'              => 'property_calendar',
+            'blocked_dates'         => 'property_blocked_dates',
+            'available_dates'       => 'property_available_dates',
+            'next_available'        => 'property_next_available',
+
+            // Gallery & Images
+            'gallery'               => 'property_gallery',
+            'gallery_images'        => 'property_gallery_images',
+            'image_count'           => 'property_image_count',
         );
     }
 

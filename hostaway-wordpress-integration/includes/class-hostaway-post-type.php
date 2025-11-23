@@ -137,7 +137,165 @@ class Hostaway_Post_Type {
         update_post_meta( $post_id, '_hostaway_id', $listing_data['id'] );
         update_post_meta( $post_id, '_hostaway_data', $listing_data );
 
+        // Sync additional data from API
+        self::sync_listing_details( $post_id, $listing_data['id'] );
+
         // Save fields using theme's field names
+        self::save_listing_fields( $post_id, $listing_data );
+
+        // Set property type
+        if ( isset( $listing_data['propertyTypeName'] ) ) {
+            wp_set_object_terms( $post_id, $listing_data['propertyTypeName'], 'property_type' );
+        }
+
+        // Set location
+        if ( isset( $listing_data['city'] ) ) {
+            wp_set_object_terms( $post_id, $listing_data['city'], 'location' );
+        }
+
+        // Handle thumbnail/featured image
+        if ( isset( $listing_data['thumbnailUrl'] ) && ! empty( $listing_data['thumbnailUrl'] ) ) {
+            self::set_featured_image_from_url( $post_id, $listing_data['thumbnailUrl'] );
+        }
+
+        // Save image gallery
+        self::save_image_gallery( $post_id, $listing_data );
+
+        // Handle amenities
+        if ( isset( $listing_data['amenities'] ) && is_array( $listing_data['amenities'] ) ) {
+            $amenity_names = array();
+            foreach ( $listing_data['amenities'] as $amenity ) {
+                if ( is_string( $amenity ) ) {
+                    $amenity_names[] = $amenity;
+                } elseif ( isset( $amenity['name'] ) ) {
+                    $amenity_names[] = $amenity['name'];
+                }
+            }
+
+            if ( ! empty( $amenity_names ) ) {
+                // Set as taxonomy terms
+                wp_set_object_terms( $post_id, $amenity_names, 'amenity' );
+
+                // Also save as meta for easier access
+                update_post_meta( $post_id, '_amenities', $amenity_names );
+                Hostaway_Config::save_field( $post_id, 'amenities', $amenity_names );
+            }
+        }
+
+        return $post_id;
+    }
+
+    /**
+     * Sync additional listing details from API (calendar, photos, etc.)
+     */
+    private static function sync_listing_details( $post_id, $listing_id ) {
+        $api_client = new Hostaway_API_Client();
+
+        // Fetch and save calendar/availability data
+        $calendar = $api_client->get_listing_calendar( $listing_id );
+        if ( ! is_wp_error( $calendar ) && isset( $calendar['result'] ) ) {
+            self::save_calendar_data( $post_id, $calendar['result'] );
+        }
+
+        // Fetch detailed photos
+        $photos = $api_client->get_listing_photos( $listing_id );
+        if ( ! is_wp_error( $photos ) && isset( $photos['result'] ) ) {
+            self::save_detailed_photos( $post_id, $photos['result'] );
+        }
+    }
+
+    /**
+     * Save calendar/availability data
+     */
+    private static function save_calendar_data( $post_id, $calendar_data ) {
+        if ( ! is_array( $calendar_data ) ) {
+            return;
+        }
+
+        // Process calendar data into availability array
+        $availability = array();
+        $blocked_dates = array();
+        $available_dates = array();
+
+        foreach ( $calendar_data as $day ) {
+            $date = isset( $day['date'] ) ? $day['date'] : null;
+            if ( ! $date ) continue;
+
+            $is_available = isset( $day['status'] ) && strtolower( $day['status'] ) === 'available';
+
+            $availability[ $date ] = array(
+                'status'       => $day['status'] ?? 'unknown',
+                'available'    => $is_available,
+                'price'        => $day['price'] ?? null,
+                'min_stay'     => $day['minimumStay'] ?? null,
+                'reservation_id' => $day['reservationId'] ?? null,
+            );
+
+            if ( $is_available ) {
+                $available_dates[] = $date;
+            } else {
+                $blocked_dates[] = $date;
+            }
+        }
+
+        // Save calendar data
+        update_post_meta( $post_id, '_hostaway_calendar', $availability );
+        update_post_meta( $post_id, '_availability_calendar', $availability );
+
+        // Save blocked/available dates for easy queries
+        update_post_meta( $post_id, '_blocked_dates', $blocked_dates );
+        update_post_meta( $post_id, '_available_dates', $available_dates );
+
+        // Theme-specific calendar fields
+        Hostaway_Config::save_field( $post_id, 'calendar', $availability );
+        Hostaway_Config::save_field( $post_id, 'blocked_dates', $blocked_dates );
+        Hostaway_Config::save_field( $post_id, 'available_dates', $available_dates );
+
+        // Save next available date
+        if ( ! empty( $available_dates ) ) {
+            sort( $available_dates );
+            $next_available = $available_dates[0];
+            update_post_meta( $post_id, '_next_available_date', $next_available );
+            Hostaway_Config::save_field( $post_id, 'next_available', $next_available );
+        }
+    }
+
+    /**
+     * Save detailed photos from API
+     */
+    private static function save_detailed_photos( $post_id, $photos_data ) {
+        if ( ! is_array( $photos_data ) || empty( $photos_data ) ) {
+            return;
+        }
+
+        $image_urls = array();
+        $image_ids = array();
+
+        foreach ( $photos_data as $photo ) {
+            if ( isset( $photo['url'] ) ) {
+                $image_urls[] = $photo['url'];
+
+                // Optionally download and attach images to post
+                // Commented out by default to avoid excessive downloads
+                // $attachment_id = self::download_image_to_media( $post_id, $photo['url'], $photo['caption'] ?? '' );
+                // if ( $attachment_id ) {
+                //     $image_ids[] = $attachment_id;
+                // }
+            }
+        }
+
+        // Save image URLs
+        update_post_meta( $post_id, '_image_gallery', $image_urls );
+        update_post_meta( $post_id, '_hostaway_photos', $photos_data );
+
+        // Theme-specific gallery field
+        Hostaway_Config::save_field( $post_id, 'gallery', $image_urls );
+    }
+
+    /**
+     * Save all listing fields
+     */
+    private static function save_listing_fields( $post_id, $listing_data ) {
 
         // Basic property details
         if ( isset( $listing_data['bedrooms'] ) ) {
@@ -252,55 +410,44 @@ class Hostaway_Post_Type {
         if ( isset( $listing_data['timezone'] ) ) {
             Hostaway_Config::save_field( $post_id, 'timezone', sanitize_text_field( $listing_data['timezone'] ) );
         }
+    }
 
-        // Set property type
-        if ( isset( $listing_data['propertyTypeName'] ) ) {
-            wp_set_object_terms( $post_id, $listing_data['propertyTypeName'], 'property_type' );
+    /**
+     * Save image gallery with theme compatibility
+     */
+    private static function save_image_gallery( $post_id, $listing_data ) {
+        if ( ! isset( $listing_data['images'] ) || ! is_array( $listing_data['images'] ) ) {
+            return;
         }
 
-        // Set location
-        if ( isset( $listing_data['city'] ) ) {
-            wp_set_object_terms( $post_id, $listing_data['city'], 'location' );
-        }
+        $image_urls = array();
+        $image_ids_string = '';
 
-        // Handle thumbnail/featured image
-        if ( isset( $listing_data['thumbnailUrl'] ) && ! empty( $listing_data['thumbnailUrl'] ) ) {
-            self::set_featured_image_from_url( $post_id, $listing_data['thumbnailUrl'] );
-        }
-
-        // Save image gallery
-        if ( isset( $listing_data['images'] ) && is_array( $listing_data['images'] ) ) {
-            $image_urls = array();
-            foreach ( $listing_data['images'] as $image ) {
-                if ( isset( $image['url'] ) ) {
-                    $image_urls[] = $image['url'];
-                }
-            }
-            update_post_meta( $post_id, '_image_gallery', $image_urls );
-        }
-
-        // Handle amenities
-        if ( isset( $listing_data['amenities'] ) && is_array( $listing_data['amenities'] ) ) {
-            $amenity_names = array();
-            foreach ( $listing_data['amenities'] as $amenity ) {
-                if ( is_string( $amenity ) ) {
-                    $amenity_names[] = $amenity;
-                } elseif ( isset( $amenity['name'] ) ) {
-                    $amenity_names[] = $amenity['name'];
-                }
-            }
-
-            if ( ! empty( $amenity_names ) ) {
-                // Set as taxonomy terms
-                wp_set_object_terms( $post_id, $amenity_names, 'amenity' );
-
-                // Also save as meta for easier access
-                update_post_meta( $post_id, '_amenities', $amenity_names );
-                Hostaway_Config::save_field( $post_id, 'amenities', $amenity_names );
+        foreach ( $listing_data['images'] as $image ) {
+            if ( isset( $image['url'] ) ) {
+                $image_urls[] = $image['url'];
             }
         }
 
-        return $post_id;
+        if ( empty( $image_urls ) ) {
+            return;
+        }
+
+        // Save as URLs for most themes
+        update_post_meta( $post_id, '_image_gallery', $image_urls );
+
+        // Save comma-separated for themes that expect it
+        $image_urls_string = implode( ',', $image_urls );
+        update_post_meta( $post_id, '_gallery_images', $image_urls_string );
+
+        // Theme-specific gallery fields
+        Hostaway_Config::save_field( $post_id, 'gallery', $image_urls );
+        Hostaway_Config::save_field( $post_id, 'gallery_images', $image_urls_string );
+
+        // Save image count
+        $image_count = count( $image_urls );
+        update_post_meta( $post_id, '_image_count', $image_count );
+        Hostaway_Config::save_field( $post_id, 'image_count', $image_count );
     }
 
     /**
