@@ -47,10 +47,20 @@ class Hostaway_Admin {
      * Add admin menu
      */
     public function add_admin_menu() {
-        // Main menu is already created by the custom post type
+        // Create a standalone top-level menu (always visible)
+        add_menu_page(
+            'Hostaway Integration',
+            'Hostaway',
+            'manage_options',
+            'hostaway',
+            array( $this, 'display_main_page' ),
+            'dashicons-admin-home',
+            30
+        );
+
         // Add settings submenu
         add_submenu_page(
-            'edit.php?post_type=hostaway_listing',
+            'hostaway',
             'Hostaway Settings',
             'Settings',
             'manage_options',
@@ -60,13 +70,29 @@ class Hostaway_Admin {
 
         // Add sync submenu
         add_submenu_page(
-            'edit.php?post_type=hostaway_listing',
+            'hostaway',
             'Sync Listings',
-            'Sync Listings',
+            'Sync',
             'manage_options',
             'hostaway-sync',
             array( $this, 'display_sync_page' )
         );
+
+        // Add migration submenu
+        add_submenu_page(
+            'hostaway',
+            'Move to Listings',
+            'Move to Listings',
+            'manage_options',
+            'hostaway-migrate',
+            array( $this, 'display_migrate_page' )
+        );
+
+        // Rename the first submenu item to "Dashboard"
+        global $submenu;
+        if (isset($submenu['hostaway'])) {
+            $submenu['hostaway'][0][0] = 'Dashboard';
+        }
     }
 
     /**
@@ -280,5 +306,211 @@ class Hostaway_Admin {
             'synced_count' => $synced_count,
             'errors' => $errors,
         ) );
+    }
+
+    /**
+     * Display main dashboard page
+     */
+    public function display_main_page() {
+        $hostaway_count = wp_count_posts( 'hostaway_listing' );
+        $listing_count = wp_count_posts( 'listing' );
+        $last_sync = get_option( 'hostaway_last_sync' );
+        ?>
+        <div class="wrap">
+            <h1>Hostaway Integration Dashboard</h1>
+
+            <div class="card" style="max-width: 800px;">
+                <h2>Quick Status</h2>
+
+                <table class="widefat">
+                    <tr>
+                        <th>Metric</th>
+                        <th>Value</th>
+                    </tr>
+                    <tr>
+                        <td>Hostaway Listings (needs migration)</td>
+                        <td><strong><?php echo ($hostaway_count->publish ?? 0); ?></strong></td>
+                    </tr>
+                    <tr>
+                        <td>WordPress Listings (correct location)</td>
+                        <td><strong><?php echo ($listing_count->publish ?? 0); ?></strong></td>
+                    </tr>
+                    <tr>
+                        <td>Last Sync</td>
+                        <td><?php echo $last_sync ? date('F j, Y g:i a', strtotime($last_sync)) : 'Never'; ?></td>
+                    </tr>
+                    <tr>
+                        <td>API Status</td>
+                        <td>
+                            <?php if (get_option('hostaway_account_id') && get_option('hostaway_secret_key')): ?>
+                                <span style="color: green;">✅ Configured</span>
+                            <?php else: ?>
+                                <span style="color: red;">❌ Not configured</span>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                </table>
+
+                <h3 style="margin-top: 30px;">Quick Actions</h3>
+
+                <?php if (($hostaway_count->publish ?? 0) > 0): ?>
+                    <p>
+                        <a href="admin.php?page=hostaway-migrate" class="button button-primary button-large">
+                            🚀 Move <?php echo $hostaway_count->publish; ?> Listings to WordPress
+                        </a>
+                    </p>
+                <?php endif; ?>
+
+                <p>
+                    <a href="admin.php?page=hostaway-sync" class="button button-secondary">
+                        🔄 Sync from Hostaway
+                    </a>
+                    <a href="admin.php?page=hostaway-settings" class="button button-secondary">
+                        ⚙️ Settings
+                    </a>
+                    <a href="edit.php?post_type=listing" class="button button-secondary">
+                        📋 View Listings
+                    </a>
+                </p>
+            </div>
+
+            <?php if (($hostaway_count->publish ?? 0) > 0): ?>
+                <div class="notice notice-warning" style="max-width: 800px;">
+                    <p><strong>Action Required:</strong> You have <?php echo $hostaway_count->publish; ?> Hostaway listings in a separate section. Click "Move to Listings" above to move them to your main Listings section.</p>
+                </div>
+            <?php endif; ?>
+        </div>
+        <?php
+    }
+
+    /**
+     * Display migration page
+     */
+    public function display_migrate_page() {
+        // Handle migration POST request
+        if ( isset( $_POST['migrate_now'] ) && wp_verify_nonce( $_POST['_wpnonce'], 'migrate_hostaway' ) ) {
+            $this->do_migration();
+            return;
+        }
+
+        // Show migration form
+        $hostaway_count = wp_count_posts( 'hostaway_listing' );
+        $listing_count = wp_count_posts( 'listing' );
+        ?>
+        <div class="wrap">
+            <h1>Move Hostaway Listings to Your Listings Section</h1>
+
+            <div class="notice notice-info">
+                <p><strong>What this does:</strong> Moves all Hostaway listings from the separate "Hostaway" section into your main "Listings" section where they belong.</p>
+            </div>
+
+            <table class="widefat" style="max-width: 600px; margin: 20px 0;">
+                <thead>
+                    <tr>
+                        <th>Location</th>
+                        <th>Count</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Hostaway Section</strong> (separate menu)</td>
+                        <td><?php echo $hostaway_count->publish ?? 0; ?> listings</td>
+                        <td><span style="color: red;">❌ Wrong location</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Listings Section</strong> (your main listings)</td>
+                        <td><?php echo $listing_count->publish ?? 0; ?> listings</td>
+                        <td><span style="color: green;">✅ Correct location</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <?php if ( ( $hostaway_count->publish ?? 0 ) > 0 ) : ?>
+                <form method="post" onsubmit="return confirm('This will move <?php echo $hostaway_count->publish; ?> listings. Continue?');">
+                    <?php wp_nonce_field( 'migrate_hostaway' ); ?>
+                    <p>
+                        <button type="submit" name="migrate_now" class="button button-primary button-hero">
+                            🚀 Move <?php echo $hostaway_count->publish; ?> Listings to "Listings" Section
+                        </button>
+                    </p>
+                </form>
+
+                <p><em>This will:</em></p>
+                <ul>
+                    <li>✅ Move all Hostaway listings to your main Listings section</li>
+                    <li>✅ Keep all data, images, and metadata intact</li>
+                    <li>✅ Configure future syncs to go directly to Listings</li>
+                    <li>✅ Make them appear in your theme's existing listing displays</li>
+                </ul>
+            <?php else : ?>
+                <div class="notice notice-warning">
+                    <p>No Hostaway listings found to migrate. They may already be in the correct location!</p>
+                    <p><a href="edit.php?post_type=listing">Check your Listings section →</a></p>
+                </div>
+            <?php endif; ?>
+        </div>
+        <?php
+    }
+
+    /**
+     * Perform the actual migration
+     */
+    private function do_migration() {
+        ?>
+        <div class="wrap">
+            <h1>Migration in Progress...</h1>
+
+            <?php
+            // Force future syncs to use 'listing'
+            update_option( 'hostaway_force_post_type', 'listing' );
+            echo '<p style="color: green;">✅ Configured future syncs to use "listing" post type</p>';
+
+            // Get all hostaway_listing posts
+            $posts = get_posts( array(
+                'post_type'   => 'hostaway_listing',
+                'numberposts' => -1,
+                'post_status' => 'any',
+            ) );
+
+            echo '<p>Found ' . count( $posts ) . ' listings to migrate...</p>';
+            echo '<div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; margin: 20px 0;">';
+
+            $success = 0;
+            $failed = 0;
+
+            foreach ( $posts as $post ) {
+                $result = wp_update_post( array(
+                    'ID'        => $post->ID,
+                    'post_type' => 'listing',
+                ) );
+
+                if ( ! is_wp_error( $result ) && $result !== 0 ) {
+                    $success++;
+                    echo '<p style="color: green;">✅ Migrated: ' . esc_html( $post->post_title ) . '</p>';
+                } else {
+                    $failed++;
+                    $error_msg = is_wp_error( $result ) ? $result->get_error_message() : 'Unknown error';
+                    echo '<p style="color: red;">❌ Failed: ' . esc_html( $post->post_title ) . ' - ' . esc_html( $error_msg ) . '</p>';
+                }
+            }
+
+            echo '</div>';
+
+            update_option( 'hostaway_migrated_to_listing', 'yes' );
+
+            echo '<hr>';
+            echo '<h2 style="color: green;">✅ Migration Complete!</h2>';
+            echo '<p><strong>Successfully migrated:</strong> ' . $success . ' listings</p>';
+            if ( $failed > 0 ) {
+                echo '<p style="color: red;"><strong>Failed:</strong> ' . $failed . ' listings</p>';
+            }
+            echo '<p style="font-size: 16px; margin: 30px 0;">';
+            echo '<a href="edit.php?post_type=listing" class="button button-primary button-hero">View Your Listings →</a>';
+            echo '</p>';
+            echo '<p><em>All Hostaway listings are now in your main Listings section!</em></p>';
+            ?>
+        </div>
+        <?php
     }
 }
